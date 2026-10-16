@@ -10,9 +10,9 @@ A native PC port and community restoration of the classic mobile game **Case Cli
 ## How to Run
 
 ### Standalone (Recommended)
-1. Download or clone this repository.
-2. Launch **`CaseClickerOpened.exe`** (or open the folder in **Solar2D Simulator**).
-3. The game starts in 1280x720 windowed mode with full mouse support.
+1. Download **`CaseClickerOpened.exe`** from [Releases](https://github.com/Sivenesis/CaseClickerOpened/releases) (or download and extract **`CaseClickerOpened-v1.0.0-Windows.zip`**).
+2. Double-click **`CaseClickerOpened.exe`** to launch the game. The standalone executable is fully self-contained and automatically initializes the runtime on first run.
+3. The game starts in 1280x720 windowed mode with full mouse and wheel support.
 
 ### Running from Source
 1. Install [Solar2D](https://solar2d.com).

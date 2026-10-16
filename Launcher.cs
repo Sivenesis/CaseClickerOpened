@@ -2,6 +2,7 @@ using System;
 using System.Diagnostics;
 using System.Drawing;
 using System.IO;
+using System.IO.Compression;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Windows.Forms;
@@ -84,10 +85,125 @@ namespace CaseClicker
                     enginePath = Path.Combine(appDir, "Solar2D.exe");
                 }
 
+                // If engine or main.lua is not found in the executable directory (e.g. run directly from Downloads),
+                // extract embedded GamePackage to %LOCALAPPDATA%\CaseClickerOpened\ or use existing installation.
+                if (!File.Exists(enginePath) || !File.Exists(mainLuaPath))
+                {
+                    string localAppData = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                    string installDir = Path.Combine(localAppData, "CaseClickerOpened");
+                    string localEngine = Path.Combine(installDir, "engine.exe");
+                    string localMain = Path.Combine(installDir, "main.lua");
+
+                    var asm = System.Reflection.Assembly.GetExecutingAssembly();
+                    using (var stream = asm.GetManifestResourceStream("GamePackage"))
+                    {
+                        if (stream != null)
+                        {
+                            if (!File.Exists(localEngine) || !File.Exists(localMain))
+                            {
+                                Form splash = null;
+                                try
+                                {
+                                    splash = new Form()
+                                    {
+                                        Text = "Case Clicker Opened",
+                                        StartPosition = FormStartPosition.CenterScreen,
+                                        FormBorderStyle = FormBorderStyle.FixedDialog,
+                                        MaximizeBox = false,
+                                        MinimizeBox = false,
+                                        ClientSize = new Size(380, 90),
+                                        TopMost = true
+                                    };
+                                    var lbl = new Label()
+                                    {
+                                        Text = "Preparing Case Clicker Opened for first run...\nPlease wait a moment.",
+                                        TextAlign = ContentAlignment.MiddleCenter,
+                                        Dock = DockStyle.Fill,
+                                        Font = new Font("Segoe UI", 10, FontStyle.Regular)
+                                    };
+                                    splash.Controls.Add(lbl);
+                                    splash.Show();
+                                    splash.Refresh();
+                                }
+                                catch { }
+
+                                try
+                                {
+                                    Directory.CreateDirectory(installDir);
+                                    using (var archive = new ZipArchive(stream, ZipArchiveMode.Read))
+                                    {
+                                        foreach (var entry in archive.Entries)
+                                        {
+                                            string safeRel = entry.FullName.Replace('/', Path.DirectorySeparatorChar);
+                                            string destPath = Path.Combine(installDir, safeRel);
+                                            if (string.IsNullOrEmpty(entry.Name))
+                                            {
+                                                Directory.CreateDirectory(destPath);
+                                            }
+                                            else
+                                            {
+                                                string dir = Path.GetDirectoryName(destPath);
+                                                if (!string.IsNullOrEmpty(dir) && !Directory.Exists(dir))
+                                                {
+                                                    Directory.CreateDirectory(dir);
+                                                }
+                                                entry.ExtractToFile(destPath, true);
+                                            }
+                                        }
+                                    }
+                                }
+                                catch { }
+                                finally
+                                {
+                                    if (splash != null)
+                                    {
+                                        try { splash.Dispose(); } catch { }
+                                    }
+                                }
+                            }
+
+                            if (File.Exists(localEngine) && File.Exists(localMain))
+                            {
+                                appDir = installDir;
+                                enginePath = localEngine;
+                                mainLuaPath = localMain;
+                            }
+                        }
+                    }
+
+                    if ((!File.Exists(enginePath) || !File.Exists(mainLuaPath)) && File.Exists(localEngine) && File.Exists(localMain))
+                    {
+                        appDir = installDir;
+                        enginePath = localEngine;
+                        mainLuaPath = localMain;
+                    }
+
+                    if (!File.Exists(enginePath))
+                    {
+                        string[] candidates = new string[]
+                        {
+                            @"C:\Program Files (x86)\Corona Labs\Corona SDK\Corona Simulator.exe",
+                            @"C:\Program Files\Corona Labs\Corona SDK\Corona Simulator.exe",
+                            @"C:\Program Files\Solar2D\Solar2D Simulator.exe",
+                            @"C:\Program Files (x86)\Solar2D\Solar2D Simulator.exe"
+                        };
+                        foreach (var c in candidates)
+                        {
+                            if (File.Exists(c))
+                            {
+                                enginePath = c;
+                                break;
+                            }
+                        }
+                    }
+                }
+
                 if (!File.Exists(enginePath))
                 {
                     MessageBox.Show(
-                        "Could not locate the Solar2D runtime engine (engine.exe or Solar2D.exe).\nPlease ensure all exported files remain in the application directory.",
+                        "Could not locate the Solar2D runtime engine (engine.exe or Solar2D.exe).\n\n" +
+                        "If running from a zip download, please extract the full zip archive first before launching.\n" +
+                        "Alternatively, run the self-contained CaseClickerOpened.exe package.",
                         "Case Clicker - Startup Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
@@ -98,7 +214,7 @@ namespace CaseClicker
                 if (!File.Exists(mainLuaPath))
                 {
                     MessageBox.Show(
-                        "Could not locate main.lua in:\n" + appDir,
+                        "Could not locate main.lua in:\n" + appDir + "\n\nPlease ensure all game files are extracted before running.",
                         "Case Clicker - Startup Error",
                         MessageBoxButtons.OK,
                         MessageBoxIcon.Error
