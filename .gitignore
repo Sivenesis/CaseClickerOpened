@@ -1,0 +1,35 @@
+# Solar2D / Corona SDK build artifacts
+*.corona-archive
+*.car
+.solar2d/
+build/
+Build/
+*.bak
+
+# Windows OS files
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# macOS files
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# User save states / local runtime files
+*.txt
+!*.fnt
+fps.txt
+save*.json
+user_data/
+
+# Python caches
+__pycache__/
+*.py[cod]
+
+# IDE configurations
+.vscode/
+.idea/
+*.sublime-project
+*.sublime-workspace

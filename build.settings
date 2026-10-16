@@ -1,0 +1,29 @@
+-- Case Clicker (PC-Windows Community Edition)
+-- Solar2D build settings for Windows Desktop
+
+settings = {
+    orientation = {
+        default = "landscapeRight",
+        supported = { "landscapeRight", "landscapeLeft" }
+    },
+    window = {
+        defaultMode = "normal",
+        defaultViewWidth = 1280,
+        defaultViewHeight = 720,
+        resizable = true,
+        minViewWidth = 960,
+        minViewHeight = 540,
+        title = "Case Clicker Opened",
+    },
+    excludeFiles = {
+        all = {
+            "*.ipa",
+            "*.car",
+            "*.corona-archive",
+            "extra_files/*",
+            "raw/*",
+            "*.psd",
+            "*.xcassets/*"
+        }
+    }
+}
